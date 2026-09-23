@@ -45,13 +45,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Mirrors arch: in config.yaml. towonel-agent's upstream Dockerfile
+        # only builds amd64/arm64 (its BUILDARCH/TARGETARCH case statements
+        # exit 1 on anything else) — no armv7 manifest exists to pull.
         include:
           - arch: amd64
             platform: linux/amd64
           - arch: aarch64
             platform: linux/arm64
-          - arch: armv7
-            platform: linux/arm/v7
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
