@@ -1,6 +1,6 @@
-# Towonel veröffentlicht kein eigenständiges Release-Binary wie Newt (fosrl/newt),
-# nur Docker-Images. Wir extrahieren das Binary daher per Multi-Stage-Build aus
-# dem Upstream-Image, statt es wie im Newt-Add-on per Checksum herunterzuladen.
+# Towonel does not publish a standalone release binary like Newt (fosrl/newt),
+# only Docker images. We extract the binary via a multi-stage build from the
+# upstream image instead of downloading a checksummed release asset.
 ARG TOWONEL_VERSION=1.7.1
 FROM codeberg.org/towonel/towonel-agent:${TOWONEL_VERSION} AS upstream
 
@@ -13,16 +13,16 @@ ENV HEALTH_URL="http://127.0.0.1:9090/healthz"
 
 RUN apk add --no-cache bash jq curl
 
-# WICHTIG: Pfad vor dem Bauen gegen das tatsächliche Image prüfen, z.B. mit:
+# IMPORTANT: verify this path against the actual image before building, e.g.:
 #   docker run --rm --entrypoint sh codeberg.org/towonel/towonel-agent:1.7.1 -c 'which towonel-agent'
 COPY --from=upstream /usr/local/bin/towonel-agent /usr/bin/towonel-agent
 
 COPY run.sh /run.sh
 RUN chmod a+x /run.sh /usr/bin/towonel-agent
 
-# towonel-agent führt keine eigene Health-Datei wie Newt, sondern exponiert
-# GET /healthz auf 127.0.0.1:9090 – der Healthcheck prüft daher per curl statt
-# per Datei-Existenz.
+# towonel-agent has no self-managed health file like Newt; it exposes
+# GET /healthz on 127.0.0.1:9090 instead, so the healthcheck curls it
+# rather than checking for a file.
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=30s \
   CMD curl -fsS "$HEALTH_URL" || exit 1
 
