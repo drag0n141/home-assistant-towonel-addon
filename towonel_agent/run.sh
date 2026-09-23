@@ -40,7 +40,7 @@ if [[ -n "$RELAY_URL" ]]; then
     export TOWONEL_AGENT_RELAY_URL="$RELAY_URL"
 fi
 
-# Persistenter Storage-Pfad für HA-Add-ons
+# Persistent storage path for HA add-ons
 export HOME="/data"
 
 STOP_REQUESTED=0
@@ -56,7 +56,7 @@ handle_shutdown() {
 }
 trap handle_shutdown SIGTERM SIGINT
 
-# Custom Environment-Variablen sicher verarbeiten (wie im Newt-Add-on)
+# Safely process custom environment variables (as in the Newt add-on)
 if [[ -n "$CUSTOM_ENV_VARS" ]]; then
     echo "✅ Custom Environment Variables:"
     while IFS= read -r env_var; do
@@ -66,9 +66,9 @@ if [[ -n "$CUSTOM_ENV_VARS" ]]; then
             continue
         fi
         var_name="${env_var%%=*}"
-        # Geschützte Variablen: entweder steuern sie run.sh selbst (PATH/HOME/LD_*),
-        # oder sie würden bereits validierte Werte aus der Add-on-Konfiguration
-        # stillschweigend überschreiben.
+        # Protected variables: either they control run.sh itself
+        # (PATH/HOME/LD_*), or they would silently override values already
+        # validated from the add-on configuration above.
         case "$var_name" in
             PATH|HOME|LD_*|TOWONEL_INVITE_TOKEN|TOWONEL_AGENT_SERVICES|TOWONEL_AGENT_TCP_SERVICES|TOWONEL_AGENT_UDP_SERVICES|TOWONEL_AGENT_HEALTH_LISTEN_ADDR)
                 echo "  ⚠️ Skipping protected variable: ${var_name}"
@@ -81,7 +81,7 @@ if [[ -n "$CUSTOM_ENV_VARS" ]]; then
     done <<< "$CUSTOM_ENV_VARS"
 fi
 
-# Auto-Reconnect-Loop
+# Auto-reconnect loop
 while true; do
     if [[ "$STOP_REQUESTED" -eq 1 ]]; then
         echo "🔹 Exiting reconnect loop"
