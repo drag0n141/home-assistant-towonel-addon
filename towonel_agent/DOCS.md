@@ -15,15 +15,21 @@ tunnels incoming requests for configured hostnames to local origins (here:
 
 ## Configuration
 
+Option keys match the agent's real `TOWONEL_*` environment variables 1:1
+(see the [Agent section](https://codeberg.org/towonel/towonel#user-content-agent)
+of the upstream config reference) — same approach as the Newt add-on, whose
+options are named `PANGOLIN_ENDPOINT`/`NEWT_ID`/`NEWT_SECRET` after Newt's
+own env vars.
+
 | Option | Description |
 |---|---|
-| `invite_token` | `tt_inv_2_...` from the hub |
-| `agent_services` | JSON array `[{"hostname":"...","origin":"127.0.0.1:8123"}]` |
-| `agent_tcp_services` | optional, JSON array for raw TCP ports |
-| `agent_udp_services` | optional, JSON array for UDP ports |
-| `relay_url` | optional, overrides the relay URL the hub delivers via bootstrap |
-| `log_level` | `trace`/`debug`/`info`/`warn`/`error` |
-| `custom_env_vars` | additional `NAME=value` pairs, e.g. for future Towonel options |
+| `TOWONEL_INVITE_TOKEN` | `tt_inv_2_...` from the hub. **Required.** |
+| `TOWONEL_AGENT_SERVICES` | JSON array `[{"hostname":"...","origin":"127.0.0.1:8123"}]`. **Required.** |
+| `TOWONEL_AGENT_TCP_SERVICES` | optional, JSON array for raw TCP services |
+| `TOWONEL_AGENT_UDP_SERVICES` | optional, JSON array for raw UDP services |
+| `TOWONEL_AGENT_TRUSTED_EDGES` | optional override for trusted edge IDs; leave empty to use the hub's default |
+| `RUST_LOG` | `trace`/`debug`/`info`/`warn`/`error` |
+| `custom_env_vars` | additional `NAME=value` pairs, e.g. for future Towonel agent options not yet exposed here |
 
 ## Home Assistant `configuration.yaml`
 
@@ -51,6 +57,12 @@ The binary is extracted from `/usr/local/bin/towonel-agent` in the upstream
 image (confirmed against its Dockerfile) via a multi-stage `COPY
 --from=upstream`, since Towonel does not publish a standalone release
 binary like Newt (fosrl/newt) does.
+
+## Health check
+
+`towonel-agent` exposes `GET /healthz` on `127.0.0.1:9090` by default (no
+env var needed to enable it); the Dockerfile's `HEALTHCHECK` polls that
+directly.
 
 ## Architecture note
 
