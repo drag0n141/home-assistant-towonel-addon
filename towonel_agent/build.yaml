@@ -1,6 +1,5 @@
 build_from:
   amd64: ghcr.io/hassio-addons/debian-base:7.4.0
   aarch64: ghcr.io/hassio-addons/debian-base:7.4.0
-  armv7: ghcr.io/hassio-addons/debian-base:7.4.0
 args:
   TOWONEL_VERSION: "1.7.1"
