@@ -10,34 +10,37 @@ if [[ ! -f "$CONFIG_PATH" ]]; then
     exit 1
 fi
 
-INVITE_TOKEN=$(jq -r '.invite_token' "$CONFIG_PATH")
-AGENT_SERVICES=$(jq -r '.agent_services' "$CONFIG_PATH")
-AGENT_TCP_SERVICES=$(jq -r '.agent_tcp_services // "[]"' "$CONFIG_PATH")
-AGENT_UDP_SERVICES=$(jq -r '.agent_udp_services // "[]"' "$CONFIG_PATH")
-RELAY_URL=$(jq -r '.relay_url // empty' "$CONFIG_PATH")
-LOG_LEVEL=$(jq -r '.log_level // "info"' "$CONFIG_PATH")
+# Option keys match the real TOWONEL_* env var names 1:1 (as in the Newt
+# add-on), so they're read and re-exported under the same name.
+TOWONEL_INVITE_TOKEN=$(jq -r '.TOWONEL_INVITE_TOKEN' "$CONFIG_PATH")
+TOWONEL_AGENT_SERVICES=$(jq -r '.TOWONEL_AGENT_SERVICES' "$CONFIG_PATH")
+TOWONEL_AGENT_TCP_SERVICES=$(jq -r '.TOWONEL_AGENT_TCP_SERVICES // "[]"' "$CONFIG_PATH")
+TOWONEL_AGENT_UDP_SERVICES=$(jq -r '.TOWONEL_AGENT_UDP_SERVICES // "[]"' "$CONFIG_PATH")
+TOWONEL_AGENT_TRUSTED_EDGES=$(jq -r '.TOWONEL_AGENT_TRUSTED_EDGES // empty' "$CONFIG_PATH")
+RUST_LOG=$(jq -r '.RUST_LOG // "info"' "$CONFIG_PATH")
 CUSTOM_ENV_VARS=$(jq -r '.custom_env_vars // [] | .[]' "$CONFIG_PATH")
 
-if [[ -z "$INVITE_TOKEN" || "$INVITE_TOKEN" == "null" || \
-      -z "$AGENT_SERVICES" || "$AGENT_SERVICES" == "null" ]]; then
-    echo "❌ ERROR: Missing required configuration values (invite_token / agent_services)!"
+if [[ -z "$TOWONEL_INVITE_TOKEN" || "$TOWONEL_INVITE_TOKEN" == "null" || \
+      -z "$TOWONEL_AGENT_SERVICES" || "$TOWONEL_AGENT_SERVICES" == "null" ]]; then
+    echo "❌ ERROR: Missing required configuration values (TOWONEL_INVITE_TOKEN / TOWONEL_AGENT_SERVICES)!"
     exit 1
 fi
 
 echo "✅ Configuration loaded:"
 echo "  TOWONEL_INVITE_TOKEN=[REDACTED]"
-echo "  TOWONEL_AGENT_SERVICES=$AGENT_SERVICES"
-echo "  RUST_LOG=$LOG_LEVEL"
+echo "  TOWONEL_AGENT_SERVICES=$TOWONEL_AGENT_SERVICES"
+echo "  RUST_LOG=$RUST_LOG"
 
-export TOWONEL_INVITE_TOKEN="$INVITE_TOKEN"
-export TOWONEL_AGENT_SERVICES="$AGENT_SERVICES"
-export TOWONEL_AGENT_TCP_SERVICES="$AGENT_TCP_SERVICES"
-export TOWONEL_AGENT_UDP_SERVICES="$AGENT_UDP_SERVICES"
-export TOWONEL_AGENT_HEALTH_LISTEN_ADDR="127.0.0.1:9090"
-export RUST_LOG="$LOG_LEVEL"
+export TOWONEL_INVITE_TOKEN
+export TOWONEL_AGENT_SERVICES
+export TOWONEL_AGENT_TCP_SERVICES
+export TOWONEL_AGENT_UDP_SERVICES
+export RUST_LOG
 
-if [[ -n "$RELAY_URL" ]]; then
-    export TOWONEL_AGENT_RELAY_URL="$RELAY_URL"
+# Optional override — only export when actually set, so an empty/unset
+# option doesn't submit an explicit empty override to the hub.
+if [[ -n "$TOWONEL_AGENT_TRUSTED_EDGES" && "$TOWONEL_AGENT_TRUSTED_EDGES" != "null" ]]; then
+    export TOWONEL_AGENT_TRUSTED_EDGES
 fi
 
 # Persistent storage path for HA add-ons
@@ -70,7 +73,7 @@ if [[ -n "$CUSTOM_ENV_VARS" ]]; then
         # (PATH/HOME/LD_*), or they would silently override values already
         # validated from the add-on configuration above.
         case "$var_name" in
-            PATH|HOME|LD_*|TOWONEL_INVITE_TOKEN|TOWONEL_AGENT_SERVICES|TOWONEL_AGENT_TCP_SERVICES|TOWONEL_AGENT_UDP_SERVICES|TOWONEL_AGENT_HEALTH_LISTEN_ADDR)
+            PATH|HOME|LD_*|TOWONEL_INVITE_TOKEN|TOWONEL_AGENT_SERVICES|TOWONEL_AGENT_TCP_SERVICES|TOWONEL_AGENT_UDP_SERVICES|TOWONEL_AGENT_TRUSTED_EDGES|RUST_LOG)
                 echo "  ⚠️ Skipping protected variable: ${var_name}"
                 continue
                 ;;
