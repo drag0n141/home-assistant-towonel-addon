@@ -8,10 +8,18 @@
 # so this add-on runs on the glibc-based hassio-addons/debian-base rather
 # than the musl-based Alpine hassio-addons/base — the binary would not run
 # there.
+#
+# BUILD_FROM and TOWONEL_VERSION must both be declared here, before the
+# first FROM (global scope), to be usable in FROM instructions further
+# down the file. An ARG declared after a FROM is scoped to that build
+# stage only and is invisible to a later FROM line — that's what broke
+# the build originally (Supervisor log: "UndefinedArgInFrom: FROM
+# argument 'BUILD_FROM' is not declared").
+ARG BUILD_FROM
 ARG TOWONEL_VERSION=1.7.1
+
 FROM codeberg.org/towonel/towonel-agent:${TOWONEL_VERSION} AS upstream
 
-ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
 ARG TOWONEL_VERSION
