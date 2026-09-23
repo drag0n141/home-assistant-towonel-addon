@@ -6,7 +6,6 @@ url: "https://towonel.dev"
 arch:
   - amd64
   - aarch64
-  - armv7
 startup: services
 boot: auto
 host_network: true
