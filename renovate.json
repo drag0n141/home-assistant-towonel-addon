@@ -1,0 +1,42 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "labels": ["dependencies"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "TOWONEL_VERSION is pinned in build.yaml's build arg and config.yaml's add-on version, on top of the Dockerfile ARG default that Renovate's native dockerfile manager already tracks (ARG declared with a default before the FROM that uses it). Grouped via packageRules below so all three bump together in one PR.",
+      "fileMatch": ["^towonel_agent/build\\.yaml$", "^towonel_agent/config\\.yaml$"],
+      "matchStrings": [
+        "TOWONEL_VERSION: \"(?<currentValue>[\\w.-]+)\"",
+        "version: \"(?<currentValue>[\\w.-]+)\""
+      ],
+      "depNameTemplate": "codeberg.org/towonel/towonel-agent",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "debian-base image, pinned identically per architecture in build.yaml.",
+      "fileMatch": ["^towonel_agent/build\\.yaml$"],
+      "matchStrings": [
+        "ghcr\\.io/hassio-addons/debian-base:(?<currentValue>[\\w.-]+)"
+      ],
+      "depNameTemplate": "ghcr.io/hassio-addons/debian-base",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["codeberg.org/towonel/towonel-agent"],
+      "groupName": "towonel-agent version",
+      "commitMessageTopic": "towonel-agent"
+    },
+    {
+      "matchPackageNames": ["ghcr.io/hassio-addons/debian-base"],
+      "groupName": "hassio-addons debian-base",
+      "commitMessageTopic": "hassio-addons/debian-base"
+    }
+  ]
+}
