@@ -64,13 +64,13 @@ binary like Newt (fosrl/newt) does.
 env var needed to enable it); the Dockerfile's `HEALTHCHECK` polls that
 directly.
 
-## Architecture note
+## Architecture: amd64 and arm64 only
 
-`armhf` is deliberately left out here (unlike the Newt add-on) — it hasn't
-been confirmed that Towonel builds official `armhf`/ARMv6 images. Check the
-image's multi-arch manifest list before adding it to `arch:` in
-`config.yaml`:
-
-```bash
-docker manifest inspect codeberg.org/towonel/towonel-agent:1.7.1
-```
+Neither `armv7` nor `armhf` is supported here — confirmed at the registry
+level (`docker buildx build --platform linux/arm/v7` fails with "no match
+for platform in manifest: not found") and explained by the upstream
+Dockerfile itself: both its `BUILDARCH` and `TARGETARCH` case statements
+only handle `amd64`/`arm64` and `exit 1` on anything else. This isn't
+expected to change without an upstream release adding ARM32 targets — check
+`codeberg.org/towonel/towonel`'s `Dockerfile.agent` if that's ever in
+question again.
