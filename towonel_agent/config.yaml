@@ -12,20 +12,20 @@ boot: auto
 host_network: true
 apparmor: false
 options:
-  invite_token: ""
-  agent_services: '[{"hostname":"ha.example.com","origin":"127.0.0.1:8123"}]'
-  agent_tcp_services: "[]"
-  agent_udp_services: "[]"
-  relay_url: ""
-  log_level: "info"
+  TOWONEL_INVITE_TOKEN: ""
+  TOWONEL_AGENT_SERVICES: '[{"hostname":"ha.example.com","origin":"127.0.0.1:8123"}]'
+  TOWONEL_AGENT_TCP_SERVICES: "[]"
+  TOWONEL_AGENT_UDP_SERVICES: "[]"
+  TOWONEL_AGENT_TRUSTED_EDGES: ""
+  RUST_LOG: "info"
   custom_env_vars: []
 schema:
-  invite_token: "str"
-  agent_services: "str"
-  agent_tcp_services: "str"
-  agent_udp_services: "str"
-  relay_url: "str?"
-  log_level: "list(trace|debug|info|warn|error)?"
+  TOWONEL_INVITE_TOKEN: "str"
+  TOWONEL_AGENT_SERVICES: "str"
+  TOWONEL_AGENT_TCP_SERVICES: "str"
+  TOWONEL_AGENT_UDP_SERVICES: "str"
+  TOWONEL_AGENT_TRUSTED_EDGES: "str?"
+  RUST_LOG: "list(trace|debug|info|warn|error)?"
   custom_env_vars:
     - "match(^[A-Z_][A-Z0-9_]*=.+$)"
 hassio_api: false
