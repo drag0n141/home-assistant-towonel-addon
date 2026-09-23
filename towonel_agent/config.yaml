@@ -1,0 +1,34 @@
+name: "Towonel Agent"
+version: "1.7.1"
+slug: "towonel_agent"
+description: "Towonel tunnel agent for Home Assistant – exposes HA through a self-hosted Towonel hub"
+url: "https://towonel.dev"
+arch:
+  - amd64
+  - aarch64
+  - armv7
+startup: services
+boot: auto
+host_network: true
+apparmor: false
+options:
+  invite_token: ""
+  agent_services: '[{"hostname":"ha.example.com","origin":"127.0.0.1:8123"}]'
+  agent_tcp_services: "[]"
+  agent_udp_services: "[]"
+  relay_url: ""
+  log_level: "info"
+  custom_env_vars: []
+schema:
+  invite_token: "str"
+  agent_services: "str"
+  agent_tcp_services: "str"
+  agent_udp_services: "str"
+  relay_url: "str?"
+  log_level: "list(trace|debug|info|warn|error)?"
+  custom_env_vars:
+    - "match(^[A-Z_][A-Z0-9_]*=.+$)"
+hassio_api: false
+homeassistant_api: false
+auth_api: false
+hassio_role: "default"
