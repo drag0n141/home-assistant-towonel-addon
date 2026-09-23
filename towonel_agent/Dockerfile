@@ -1,6 +1,13 @@
+# syntax=docker/dockerfile:1.26
 # Towonel does not publish a standalone release binary like Newt (fosrl/newt),
 # only Docker images. We extract the binary via a multi-stage build from the
 # upstream image instead of downloading a checksummed release asset.
+#
+# The upstream image links towonel-agent against glibc (cargo-zigbuild
+# targets *-unknown-linux-gnu, final stage is gcr.io/distroless/cc-debian12),
+# so this add-on runs on the glibc-based hassio-addons/debian-base rather
+# than the musl-based Alpine hassio-addons/base — the binary would not run
+# there.
 ARG TOWONEL_VERSION=1.7.1
 FROM codeberg.org/towonel/towonel-agent:${TOWONEL_VERSION} AS upstream
 
@@ -11,10 +18,12 @@ ARG TOWONEL_VERSION
 ENV TOWONEL_VERSION=${TOWONEL_VERSION}
 ENV HEALTH_URL="http://127.0.0.1:9090/healthz"
 
-RUN apk add --no-cache bash jq curl
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bash jq curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# IMPORTANT: verify this path against the actual image before building, e.g.:
-#   docker run --rm --entrypoint sh codeberg.org/towonel/towonel-agent:1.7.1 -c 'which towonel-agent'
+# Confirmed against the upstream Dockerfile: the final stage copies the
+# binary to exactly this path.
 COPY --from=upstream /usr/local/bin/towonel-agent /usr/bin/towonel-agent
 
 COPY run.sh /run.sh
