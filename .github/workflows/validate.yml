@@ -1,0 +1,72 @@
+name: Validate
+
+# Pre-merge gate for the add-on. Home Assistant Supervisor builds this
+# repo's Dockerfile locally on each user's own host at install/update time —
+# nothing here publishes an image anywhere. The point of this workflow is to
+# catch a broken build/config before it reaches a real user's Supervisor,
+# not to ship anything.
+
+on:
+  pull_request:
+    paths:
+      - "towonel_agent/**"
+      - ".github/workflows/validate.yml"
+  push:
+    branches: [master]
+    paths:
+      - "towonel_agent/**"
+      - ".github/workflows/validate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Validate config.yaml is well-formed YAML
+        run: python3 -c "import yaml; yaml.safe_load(open('towonel_agent/config.yaml'))"
+
+      - name: Validate build.yaml is well-formed YAML
+        run: python3 -c "import yaml; yaml.safe_load(open('towonel_agent/build.yaml'))"
+
+      - name: Check run.sh syntax
+        run: bash -n towonel_agent/run.sh
+
+      - name: ShellCheck run.sh
+        run: shellcheck towonel_agent/run.sh
+
+  build:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+          - arch: aarch64
+            platform: linux/arm64
+          - arch: armv7
+            platform: linux/arm/v7
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build towonel_agent for ${{ matrix.arch }}
+        uses: docker/build-push-action@v6
+        with:
+          context: towonel_agent
+          platforms: ${{ matrix.platform }}
+          push: false
+          build-args: |
+            BUILD_FROM=ghcr.io/hassio-addons/debian-base:7.4.0
