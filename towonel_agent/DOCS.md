@@ -38,17 +38,19 @@ http:
     - 127.0.0.1
 ```
 
-## Verify before building
+## Base image: glibc, not Alpine
 
-The binary path in the upstream image (`/usr/local/bin/towonel-agent` in the
-Dockerfile) has not been verified. Check it before the first build:
+The upstream `towonel-agent` image builds with `cargo-zigbuild` targeting
+`*-unknown-linux-gnu` and its final stage is `gcr.io/distroless/cc-debian12`
+— the binary is dynamically linked against **glibc**. This add-on therefore
+builds on `ghcr.io/hassio-addons/debian-base` instead of the musl-based
+Alpine `ghcr.io/hassio-addons/base` that most HA add-ons (and the Newt
+add-on) use; the binary would not run on musl.
 
-```bash
-docker run --rm --entrypoint sh codeberg.org/towonel/towonel-agent:1.7.1 -c 'which towonel-agent'
-```
-
-If the path differs, adjust `COPY --from=upstream` in the Dockerfile
-accordingly.
+The binary is extracted from `/usr/local/bin/towonel-agent` in the upstream
+image (confirmed against its Dockerfile) via a multi-stage `COPY
+--from=upstream`, since Towonel does not publish a standalone release
+binary like Newt (fosrl/newt) does.
 
 ## Architecture note
 
