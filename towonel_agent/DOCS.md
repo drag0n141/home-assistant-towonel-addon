@@ -1,35 +1,35 @@
 # Towonel Agent Add-on
 
-Führt `towonel-agent` direkt in Home Assistant OS aus, analog zum Newt-Add-on
-für Pangolin – verbindet sich ausgehend zu einem selbstgehosteten Towonel-Hub
-und tunnelt eingehende Requests für konfigurierte Hostnamen zu lokalen
-Origins (hier: `127.0.0.1:8123` für Home Assistant selbst).
+Runs `towonel-agent` directly inside Home Assistant OS, mirroring the Newt
+add-on for Pangolin — connects outbound to a self-hosted Towonel hub and
+tunnels incoming requests for configured hostnames to local origins (here:
+`127.0.0.1:8123` for Home Assistant itself).
 
-## Voraussetzungen
+## Prerequisites
 
-- Ein laufender Towonel-Hub (`towonel-node`) mit öffentlicher IP/Domain.
-- Ein Invite-Token für den gewünschten Hostnamen:
+- A running Towonel hub (`towonel-node`) with a public IP/domain.
+- An invite token for the desired hostname:
   ```
   docker exec towonel towonel invite create --name ha --hostnames 'ha.example.com'
   ```
 
-## Konfiguration
+## Configuration
 
-| Option | Beschreibung |
+| Option | Description |
 |---|---|
-| `invite_token` | `tt_inv_2_...` vom Hub |
-| `agent_services` | JSON-Array `[{"hostname":"...","origin":"127.0.0.1:8123"}]` |
-| `agent_tcp_services` | optional, JSON-Array für rohe TCP-Ports |
-| `agent_udp_services` | optional, JSON-Array für UDP-Ports |
-| `relay_url` | optional, überschreibt die vom Hub via Bootstrap gelieferte Relay-URL |
+| `invite_token` | `tt_inv_2_...` from the hub |
+| `agent_services` | JSON array `[{"hostname":"...","origin":"127.0.0.1:8123"}]` |
+| `agent_tcp_services` | optional, JSON array for raw TCP ports |
+| `agent_udp_services` | optional, JSON array for UDP ports |
+| `relay_url` | optional, overrides the relay URL the hub delivers via bootstrap |
 | `log_level` | `trace`/`debug`/`info`/`warn`/`error` |
-| `custom_env_vars` | zusätzliche `NAME=value`-Paare, z.B. für zukünftige Towonel-Optionen |
+| `custom_env_vars` | additional `NAME=value` pairs, e.g. for future Towonel options |
 
 ## Home Assistant `configuration.yaml`
 
-Da der Agent per `host_network: true` im gleichen Netzwerk-Namespace wie
-HAOS läuft und HA über `127.0.0.1` anspricht, muss `127.0.0.1` als Trusted
-Proxy eingetragen werden:
+Since the agent runs with `host_network: true` in the same network namespace
+as HAOS and reaches HA via `127.0.0.1`, that address needs to be added as a
+trusted proxy:
 
 ```yaml
 http:
@@ -38,24 +38,24 @@ http:
     - 127.0.0.1
 ```
 
-## Vor dem Bauen prüfen
+## Verify before building
 
-Der Binary-Pfad im Upstream-Image (`/usr/local/bin/towonel-agent` im
-Dockerfile) ist nicht verifiziert. Vor dem ersten Build prüfen:
+The binary path in the upstream image (`/usr/local/bin/towonel-agent` in the
+Dockerfile) has not been verified. Check it before the first build:
 
 ```bash
 docker run --rm --entrypoint sh codeberg.org/towonel/towonel-agent:1.7.1 -c 'which towonel-agent'
 ```
 
-Falls der Pfad abweicht, `COPY --from=upstream` im Dockerfile entsprechend
-anpassen.
+If the path differs, adjust `COPY --from=upstream` in the Dockerfile
+accordingly.
 
-## Architektur-Hinweis
+## Architecture note
 
-`armhf` ist hier bewusst ausgelassen (anders als beim Newt-Add-on) – nicht
-bestätigt, dass Towonel offizielle `armhf`/ARMv6-Images baut. Vor dem
-Hinzufügen zu `arch:` in `config.yaml` die Multi-Arch-Manifest-Liste des
-Images prüfen:
+`armhf` is deliberately left out here (unlike the Newt add-on) — it hasn't
+been confirmed that Towonel builds official `armhf`/ARMv6 images. Check the
+image's multi-arch manifest list before adding it to `arch:` in
+`config.yaml`:
 
 ```bash
 docker manifest inspect codeberg.org/towonel/towonel-agent:1.7.1
